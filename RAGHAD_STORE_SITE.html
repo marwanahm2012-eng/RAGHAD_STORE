@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>متجر رغد للأدوات المكتبية</title>
+  <!-- Google Fonts & Tailwind & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Cairo', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Cairo', sans-serif; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #f3e8ff; }
+    ::-webkit-scrollbar-thumb { background: #c084fc; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+
+    /* Elegant Animations & Transitions */
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-8px) rotate(2deg); }
+    }
+    @keyframes float-reverse {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(8px) rotate(-2deg); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4); }
+      50% { box-shadow: 0 0 16px 4px rgba(168, 85, 247, 0.25); }
+    }
+    @keyframes cardAppear {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .animate-float { animation: float 6s ease-in-out infinite; }
+    .animate-float-reverse { animation: float-reverse 7s ease-in-out infinite; }
+    .animate-pulse-glow { animation: pulseGlow 2.5s infinite ease-in-out; }
+    
+    /* Elegant shiny overlay animation on card hover */
+    .shine-overlay {
+      position: relative;
+      overflow: hidden;
+    }
+    .shine-overlay::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 30%;
+      height: 200%;
+      background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.4) 50%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: rotate(30deg);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .group:hover .shine-overlay::after {
+      left: 120%;
+      opacity: 1;
+    }
+    
+    /* Product card transition with staggered load */
+    .catalog-card {
+      opacity: 0;
+      animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
+    .catalog-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 25px -5px rgba(139, 92, 246, 0.1), 0 10px 10px -5px rgba(139, 92, 246, 0.04);
+      border-color: rgba(168, 85, 247, 0.35);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 flex flex-col antialiased selection:bg-purple-200 selection:text-purple-900">
+
+  <!-- Navigation Header -->
+  <header id="navbar" class="bg-white border-b border-purple-100 sticky top-0 z-40 shadow-3xs"></header>
+
+  <!-- Main Container -->
+  <main class="flex-grow">
+    <!-- Hero Banner -->
+    <section id="hero-section" class="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-950 text-white relative overflow-hidden py-16 sm:py-20 hidden">
+      <div class="absolute inset-0 bg-[radial-gradient(#8b5cf6_1px,transparent_1px)] [background-size:16px_16px] opacity-15"></div>
+      
+      <!-- Decorative Floating Stationery Items -->
+      <div class="absolute top-1/4 left-8 lg:left-24 animate-float opacity-20 hidden lg:flex flex-col items-center bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/15 pointer-events-none transition-all duration-300">
+        <i data-lucide="pen-tool" class="w-10 h-10 text-purple-300"></i>
+        <span class="text-[10px] font-bold mt-1.5 text-purple-200">إبداع</span>
+      </div>
+      <div class="absolute bottom-1/4 right-8 lg:right-24 animate-float-reverse opacity-20 hidden lg:flex flex-col items-center bg-white/10 backdrop-blur-xs p-3.5 rounded-2xl border border-white/15 pointer-events-none transition-all duration-300">
+        <i data-lucide="notebook" class="w-10 h-10 text-purple-300"></i>
+        <span class="text-[10px] font-bold mt-1.5 text-purple-200">ترتيب</span>
+      </div>
+      <div class="absolute top-1/3 right-1/4 animate-pulse opacity-25 text-yellow-300 hidden md:block">
+        <i data-lucide="sparkles" class="w-6 h-6"></i>
+      </div>
+      <div class="absolute bottom-1/3 left-1/4 animate-pulse opacity-25 text-pink-300 hidden md:block" style="animation-delay: 1.5s;">
+        <i data-lucide="sparkle" class="w-8 h-8"></i>
+      </div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-5">
+        <div class="inline-flex items-center gap-1.5 bg-purple-500/25 border border-purple-400/30 text-purple-200 text-xs font-semibold py-1.5 px-3.5 rounded-full animate-pulse">
+          <i data-lucide="sparkles" class="w-4 h-4 text-purple-300"></i>
+          <span>تشكيلة حصرية متميزة للعام الحالي 2026</span>
+        </div>
+        <h2 class="font-black text-3xl sm:text-5xl tracking-tight leading-tight max-w-3xl mx-auto drop-shadow-sm">الأناقة والترتيب لإنتاجية بلا حدود</h2>
+        <p class="text-sm sm:text-base text-purple-100 max-w-2xl mx-auto leading-relaxed">
+          تصفحي باقتنا الرائعة والمميزة من الأدوات المكتبية المستوردة لترتيب وتنظيم مكاتبكم، وتوفير تجربة عمل ودراسة لا مثيل لها.
+        </p>
+      </div>
+    </section>
+
+    <!-- Filters Row -->
+    <section id="catalog-filters" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 mt-8 hidden"></section>
+
+    <!-- Content Views Area -->
+    <div id="main-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"></div>
+  </main>
+
+  <!-- Static Footer -->
+  <footer class="bg-white border-t border-purple-100 py-10 mt-12" dir="rtl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
+      <div class="flex items-center justify-center gap-2 text-purple-900">
+        <i data-lucide="store" class="w-5 h-5"></i>
+        <span class="font-bold text-base">متجر رغد للأدوات المكتبية</span>
+      </div>
+      <p class="text-xs text-gray-400 max-w-md mx-auto leading-relaxed">
+        جميع الحقوق محفوظة © <span id="footer-year">2026</span> متجر رغد للأدوات المكتبية. تشكيلة راقية مستوحاة من عشق الفن والإنتاجية.
+      </p>
+      <div class="flex flex-col items-center justify-center gap-2 pt-1">
+        <span class="text-[10px] text-gray-400">تواصلوا معنا وتابعوا جديدنا:</span>
+        <div class="flex items-center justify-center gap-3">
+          <a href="https://whatsapp.com/channel/0029Vb89IphHltYBYrHvCH16" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100/80 text-emerald-600 rounded-xl border border-emerald-100 text-xs font-medium transition-all shadow-3xs">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.725 1.451 5.437 0 9.862-4.414 9.865-9.848.001-2.63-1.019-5.101-2.873-6.958C16.502 1.982 14.04 1.96 11.957 1.96c-5.437 0-9.863 4.414-9.866 9.85-.001 1.902.486 3.758 1.412 5.361l-.926 3.38 3.472-.912c.002-.001.002-.001.002-.001zm11.367-6.393c-.27-.136-1.603-.79-1.854-.882-.25-.091-.433-.136-.615.137-.182.271-.7.881-.858 1.062-.158.182-.317.204-.587.068-.271-.136-1.144-.421-2.18-1.348-.806-.717-1.348-1.604-1.506-1.875-.158-.271-.017-.417.118-.553.122-.121.271-.317.407-.475.136-.158.182-.271.272-.453.091-.182.045-.34-.023-.476-.068-.136-.615-1.482-.843-2.031-.222-.533-.445-.461-.614-.469-.158-.008-.34-.01-.522-.01s-.476.068-.725.34c-.25.271-.952.93-.952 2.267s.974 2.63 1.11 2.812c.136.182 1.917 2.926 4.643 4.103.648.28 1.154.448 1.548.573.651.207 1.243.178 1.71.109.522-.078 1.604-.656 1.831-1.256.227-.6.227-1.114.159-1.222-.069-.108-.25-.172-.52-.308z"/></svg>
+            <span>قناة الواتساب</span>
+          </a>
+          <a href="https://www.facebook.com/share/1Ep7A2TiJJ/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100/80 text-blue-600 rounded-xl border border-blue-100 text-xs font-medium transition-all shadow-3xs">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            <span>صفحة فيسبوك</span>
+          </a>
+        </div>
+      </div>
+      <div class="flex items-center justify-center gap-5 pt-3 text-xs text-gray-400">
+        <button onclick="navigateTo('home')" class="hover:text-purple-600 font-medium transition-colors">الرئيسية</button>
+        <span>|</span>
+        <button onclick="navigateTo('about')" class="hover:text-purple-600 font-medium transition-colors">من نحن</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Slide-over Cart Sidebar Panel -->
+  <div id="cart-sidebar-root"></div>
+
+  <!-- Product Detail Modal -->
+  <div id="product-detail-modal-root"></div>
+
+  <!-- Hidden Secure Unlock Admin Modal -->
+  <div id="unlock-modal-root"></div>
+
+  <!-- Core JavaScript State & Render Logic -->
+  <script>
+    // App State Configuration
+    const state = {
+      products: [],
+      orders: [],
+      cartItems: [],
+      currentView: 'home', // 'home' | 'admin' | 'about'
+      isCartOpen: false,
+      lastPlacedOrderId: null,
+      isAdminModeUnlocked: false,
+      selectedProductForDetail: null,
+      searchQuery: '',
+      selectedOrigin: 'all',
+      sortOrder: 'newest',
+      adminAuthenticated: false,
+      isUnlockModalOpen: false,
+      adminForm: {
+        origin: '',
+        images: []
+      },
+      isOriginDropdownOpen: false,
+      originSearchQuery: ''
+    };
+
+    const imageIndexes = {};
+    let detailImageIndex = 0;
+
+    const COUNTRIES_LIST = [
+      "المملكة العربية السعودية", "اليابان", "كوريا الجنوبية", "ألمانيا", "الصين", "تايوان",
+      "الولايات المتحدة", "المملكة المتحدة", "فرنسا", "إيطاليا", "إسبانيا", "سويسرا",
+      "السويد", "هولندا", "بلجيكا", "النمسا", "تركيا", "الهند", "ماليزيا", "سنغافورة",
+      "إندونيسيا", "فيتنام", "مصر", "الإمارات العربية المتحدة", "الكويت", "قطر",
+      "سلطنة عمان", "البحرين", "الأردن", "لبنان", "كندا", "أستراليا"
+    ];
+
+    // Reactive State Dispatcher
+    function updateState(keysAndValues) {
+      Object.assign(state, keysAndValues);
+      render();
+    }
+
+    function navigateTo(view) {
+      updateState({ currentView: view });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Secure Brand Secret Clicks
+    let brandClickCount = 0;
+    function handleBrandClick() {
+      if (state.isAdminModeUnlocked) {
+        navigateTo('admin');
+        return;
+      }
+      brandClickCount++;
+      if (brandClickCount >= 8) {
+        brandClickCount = 0;
+        updateState({ isUnlockModalOpen: true });
+      } else {
+        navigateTo('home');
+      }
+    }
+
+    // --- RENDER COMPONENT SCHEMAS ---
+
+    function renderNavbar() {
+      const cartCount = state.cartItems.reduce((acc, item) => acc + item.quantity, 0);
+      const navbarEl = document.getElementById('navbar');
+      
+      const adminTabHtml = state.isAdminModeUnlocked ? `
+        <button onclick="navigateTo('admin')" class="font-semibold transition-colors relative py-2 ${state.currentView === 'admin' ? 'text-purple-700 font-bold' : 'text-gray-500 hover:text-purple-600'}">
+          لوحة الإدارة
+          ${state.currentView === 'admin' ? '<span class="absolute bottom-0 inset-x-0 h-0.5 bg-purple-600 rounded-full"></span>' : ''}
+        </button>
+      ` : '';
+
+      navbarEl.innerHTML = `
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          <div onclick="handleBrandClick()" class="flex items-center gap-2 cursor-pointer select-none">
+            <div class="bg-purple-600 text-white p-2.5 rounded-2xl shadow-xs">
+              <i data-lucide="store" class="w-6 h-6"></i>
+            </div>
+            <div class="text-right">
+              <h1 class="font-black text-xl text-purple-950 tracking-tight leading-none">متجر رغد</h1>
+              <span class="text-[10px] text-purple-600 font-semibold tracking-wider mt-0.5 block">للأدوات المكتبية المتميزة</span>
+            </div>
+          </div>
+
+          <nav class="hidden md:flex items-center gap-8">
+            <button onclick="navigateTo('home')" class="font-semibold transition-colors relative py-2 ${state.currentView === 'home' ? 'text-purple-700 font-bold' : 'text-gray-500 hover:text-purple-600'}">
+              الرئيسية
+              ${state.currentView === 'home' ? '<span class="absolute bottom-0 inset-x-0 h-0.5 bg-purple-600 rounded-full"></span>' : ''}
+            </button>
+            <button onclick="navigateTo('about')" class="font-semibold transition-colors relative py-2 ${state.currentView === 'about' ? 'text-purple-700 font-bold' : 'text-gray-500 hover:text-purple-600'}">
+              من نحن
+              ${state.currentView === 'about' ? '<span class="absolute bottom-0 inset-x-0 h-0.5 bg-purple-600 rounded-full"></span>' : ''}
+            </button>
+            ${adminTabHtml}
+          </nav>
+
+          <div class="flex items-center gap-2.5">
+            <a href="https://whatsapp.com/channel/0029Vb89IphHltYBYrHvCH16" target="_blank" rel="noopener noreferrer" class="bg-emerald-50 hover:bg-emerald-100/80 text-emerald-600 p-2.5 rounded-2xl border border-emerald-100/60 transition-all flex items-center justify-center">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.725 1.451 5.437 0 9.862-4.414 9.865-9.848.001-2.63-1.019-5.101-2.873-6.958C16.502 1.982 14.04 1.96 11.957 1.96c-5.437 0-9.863 4.414-9.866 9.85-.001 1.902.486 3.758 1.412 5.361l-.926 3.38 3.472-.912c.002-.001.002-.001.002-.001zm11.367-6.393c-.27-.136-1.603-.79-1.854-.882-.25-.091-.433-.136-.615.137-.182.271-.7.881-.858 1.062-.158.182-.317.204-.587.068-.271-.136-1.144-.421-2.18-1.348-.806-.717-1.348-1.604-1.506-1.875-.158-.271-.017-.417.118-.553.122-.121.271-.317.407-.475.136-.158.182-.271.272-.453.091-.182.045-.34-.023-.476-.068-.136-.615-1.482-.843-2.031-.222-.533-.445-.461-.614-.469-.158-.008-.34-.01-.522-.01s-.476.068-.725.34c-.25.271-.952.93-.952 2.267s.974 2.63 1.11 2.812c.136.182 1.917 2.926 4.643 4.103.648.28 1.154.448 1.548.573.651.207 1.243.178 1.71.109.522-.078 1.604-.656 1.831-1.256.227-.6.227-1.114.159-1.222-.069-.108-.25-.172-.52-.308z"/></svg>
+            </a>
+            <button onclick="updateState({ isCartOpen: true })" class="relative bg-purple-50 hover:bg-purple-100 text-purple-700 p-2.5 rounded-2xl border border-purple-100 transition-all flex items-center justify-center shadow-3xs">
+              <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+              ${cartCount > 0 ? `<span class="absolute -top-1.5 -left-1.5 bg-purple-600 text-white text-[10px] font-bold w-5.5 h-5.5 rounded-full flex items-center justify-center border-2 border-white">${cartCount}</span>` : ''}
+            </button>
+          </div>
+        </div>
+        <div class="md:hidden flex items-center justify-center gap-4 py-2 border-t border-purple-50 bg-purple-50/10">
+          <button onclick="navigateTo('home')" class="text-xs font-semibold ${state.currentView === 'home' ? 'text-purple-700 font-bold' : 'text-gray-500'}">الرئيسية</button>
+          <span class="text-purple-100">|</span>
+          <button onclick="navigateTo('about')" class="text-xs font-semibold ${state.currentView === 'about' ? 'text-purple-700 font-bold' : 'text-gray-500'}">من نحن</button>
+          ${state.isAdminModeUnlocked ? `
+            <span class="text-purple-100">|</span>
+            <button onclick="navigateTo('admin')" class="text-xs font-semibold ${state.currentView === 'admin' ? 'text-purple-700 font-bold' : 'text-gray-500'}">لوحة الإدارة</button>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    function handleSearchInput(val) {
+      state.searchQuery = val;
+      const cardsGrid = document.getElementById('catalog-cards-grid');
+      if (cardsGrid) renderProductCards(cardsGrid);
+    }
+
+    function renderCatalog() {
+      const filtersEl = document.getElementById('catalog-filters');
+      const heroSectionEl = document.getElementById('hero-section');
+      const mainContentEl = document.getElementById('main-content');
+
+      if (state.currentView !== 'home') {
+        filtersEl.classList.add('hidden');
+        heroSectionEl.classList.add('hidden');
+        return;
+      }
+
+      filtersEl.classList.remove('hidden');
+      heroSectionEl.classList.remove('hidden');
+
+      const origins = Array.from(new Set(state.products.map(p => p.origin)));
+
+      filtersEl.innerHTML = `
+        <div class="bg-white border border-purple-100 rounded-3xl p-5 shadow-3xs flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="relative w-full md:max-w-md">
+            <input
+              id="catalog-search"
+              type="text"
+              value="${state.searchQuery}"
+              oninput="handleSearchInput(this.value)"
+              placeholder="ابحث عن أدوات مكتبية راقية..."
+              class="w-full pr-11 pl-4 py-3 bg-slate-50 border border-purple-50 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 text-gray-700"
+            />
+            <i data-lucide="search" class="w-5 h-5 text-purple-400 absolute right-4 top-3.5"></i>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div class="flex items-center gap-2 bg-slate-50 border border-purple-50 px-3 py-1.5 rounded-2xl text-xs font-semibold text-gray-600">
+              <i data-lucide="filter" class="w-3.5 h-3.5 text-purple-500"></i>
+              <span>البلد:</span>
+              <select onchange="updateState({ selectedOrigin: this.value })" class="bg-transparent focus:outline-none text-purple-700 cursor-pointer font-bold">
+                <option value="all" ${state.selectedOrigin === 'all' ? 'selected' : ''}>الكل (${state.products.length})</option>
+                ${origins.map(org => `<option value="${org}" ${state.selectedOrigin === org ? 'selected' : ''}>${org}</option>`).join('')}
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2 bg-slate-50 border border-purple-50 px-3 py-1.5 rounded-2xl text-xs font-semibold text-gray-600">
+              <i data-lucide="arrow-up-down" class="w-3.5 h-3.5 text-purple-500"></i>
+              <span>الترتيب:</span>
+              <select onchange="updateState({ sortOrder: this.value })" class="bg-transparent focus:outline-none text-purple-700 cursor-pointer font-bold">
+                <option value="newest" ${state.sortOrder === 'newest' ? 'selected' : ''}>الأحدث المضاف</option>
+                <option value="price-asc" ${state.sortOrder === 'price-asc' ? 'selected' : ''}>السعر: من الأقل للأعلى</option>
+                <option value="price-desc" ${state.sortOrder === 'price-desc' ? 'selected' : ''}>السعر: من الأعلى للأقل</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between border-b border-purple-100 pb-3">
+          <h3 class="font-bold text-lg text-purple-950">الأدوات المكتبية المتاحة للطلب الفوري</h3>
+          <span class="text-xs text-gray-400" id="catalog-count-badge"></span>
+        </div>
+        <div id="catalog-cards-grid"></div>
+      `;
+
+      renderProductCards(document.getElementById('catalog-cards-grid'));
+    }
+
+    function changeCarouselImage(productId, length, step, event) {
+      event.stopPropagation();
+      const current = imageIndexes[productId] || 0;
+      imageIndexes[productId] = (current + step + length) % length;
+      renderCatalog();
+    }
+
+    function renderProductCards(container) {
+      if (!container) return;
+
+      if (state.products.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-3xl p-16 text-center border border-purple-100/50 text-gray-400 flex flex-col items-center justify-center gap-3 w-full">
+            <i data-lucide="package-open" class="w-12 h-12 text-purple-300"></i>
+            <p class="text-sm font-bold text-gray-500">المتجر فارغ حالياً!</p>
+            <p class="text-xs text-gray-400 max-w-sm">ترقبوا إطلاق مجموعتنا المميزة من الأدوات المكتبية قريباً.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const filtered = state.products.filter(p => {
+        const matchS = p.name.toLowerCase().includes(state.searchQuery.toLowerCase());
+        const matchO = state.selectedOrigin === 'all' || p.origin === state.selectedOrigin;
+        return matchS && matchO;
+      }).sort((a, b) => {
+        if (state.sortOrder === 'newest') return b.createdAt - a.createdAt;
+        if (state.sortOrder === 'price-asc') return a.price - b.price;
+        if (state.sortOrder === 'price-desc') return b.price - a.price;
+        return 0;
+      });
+
+      const badge = document.getElementById('catalog-count-badge');
+      if (badge) badge.textContent = `يعرض ${filtered.length} من ${state.products.length} منتج`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-3xl p-16 text-center border border-purple-100/50 text-gray-400">
+            لم نجد أي نتائج تطابق البحث أو الفلاتر المحددة حالياً.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          ${filtered.map((p, idx) => {
+            const imgs = p.images && p.images.length > 0 ? p.images : [p.image];
+            const currentImgIndex = imageIndexes[p.id] || 0;
+            const currentImg = imgs[currentImgIndex];
+            const hasDiscount = p.discountPrice !== undefined && p.discountPrice !== null;
+
+            return `
+              <div onclick="updateState({ selectedProductForDetail: state.products.find(prod => prod.id === '${p.id}') })" 
+                   style="animation-delay: ${idx * 60}ms;"
+                   class="catalog-card bg-white rounded-2xl border border-purple-100 overflow-hidden shadow-xs flex flex-col group cursor-pointer transition-all duration-300">
+                <div class="relative aspect-video w-full bg-purple-50 flex items-center justify-center p-2 overflow-hidden shine-overlay">
+                  <img src="${currentImg}" alt="${p.name}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500" referrerpolicy="no-referrer" />
+                  <div class="absolute top-3 right-3 z-10 bg-white/95 text-purple-700 text-xs font-semibold py-1 px-2.5 rounded-full border border-purple-100 flex items-center gap-1 shadow-3xs">
+                    <i data-lucide="globe" class="w-3.5 h-3.5 animate-pulse"></i>
+                    <span>${p.origin}</span>
+                  </div>
+                  ${imgs.length > 1 ? `
+                    <button onclick="changeCarouselImage('${p.id}', ${imgs.length}, -1, event)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-purple-950 p-1.5 rounded-full shadow-xs transition-all"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                    <button onclick="changeCarouselImage('${p.id}', ${imgs.length}, 1, event)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-purple-950 p-1.5 rounded-full shadow-xs transition-all"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                  ` : ''}
+                </div>
+                <div class="p-4 flex flex-col flex-grow">
+                  <h3 class="font-semibold text-gray-800 text-sm leading-snug mb-3 line-clamp-2 text-right group-hover:text-purple-900 transition-colors">${p.name}</h3>
+                  <div class="mt-auto pt-3 border-t border-purple-50 flex items-center justify-between flex-row-reverse">
+                    <div class="text-right">
+                      <span class="text-[10px] text-gray-400 block">السعر</span>
+                      ${hasDiscount ? `
+                        <span class="text-lg font-bold text-purple-700">${p.discountPrice} <span class="text-xs font-semibold">جنيه</span></span>
+                        <span class="text-[10px] text-gray-400 line-through block">${p.price} جنيه</span>
+                      ` : `<span class="text-lg font-bold text-purple-700">${p.price} <span class="text-xs font-semibold">جنيه</span></span>`}
+                    </div>
+                    <button onclick="handleAddToCart('${p.id}', event)" class="bg-purple-600 group-hover:bg-purple-700 hover:scale-105 active:scale-95 text-white text-xs font-medium py-2 px-3.5 rounded-xl shadow-xs flex items-center gap-1.5 transition-all">
+                      <i data-lucide="shopping-bag" class="w-3.5 h-3.5 group-hover:animate-bounce"></i>
+                      <span>شراء</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    function handleAddToCart(productId, event) {
+      if (event) event.stopPropagation();
+      const p = state.products.find(prod => prod.id === productId);
+      if (!p) return;
+
+      const idx = state.cartItems.findIndex(item => item.product.id === p.id);
+      if (idx > -1) {
+        state.cartItems[idx].quantity += 1;
+      } else {
+        state.cartItems.push({ product: p, quantity: 1 });
+      }
+
+      state.lastPlacedOrderId = null;
+      updateState({ isCartOpen: true });
+    }
+
+    // --- SLIDE-OVER CART COMPONENT ---
+
+    function handleCartQuantity(productId, q) {
+      if (q <= 0) {
+        state.cartItems = state.cartItems.filter(i => i.product.id !== productId);
+      } else {
+        const item = state.cartItems.find(i => i.product.id === productId);
+        if (item) item.quantity = q;
+      }
+      localStorage.setItem('raghad_cart', JSON.stringify(state.cartItems));
+      render();
+    }
+
+    function handlePlaceOrder(e) {
+      e.preventDefault();
+      const phone = document.getElementById('input-customer-phone').value.trim();
+      const addr = document.getElementById('input-customer-address').value.trim();
+      const err = document.getElementById('cart-form-error');
+
+      const shippingEl = document.getElementById('input-customer-shipping');
+      const shippingCompany = shippingEl ? shippingEl.value : 'Bosta';
+
+      if (!phone || !addr) {
+        err.textContent = 'الرجاء تعبئة جميع الحقول المطلوبة.';
+        err.classList.remove('hidden');
+        return;
+      }
+      const isEgyptian = /^01[0125]\d{8}$/.test(phone);
+      if (!isEgyptian) {
+        err.textContent = 'رقم جوال غير صالح. يجب أن يكون رقم جوال مصري صحيح مكون من 11 رقم ويبدأ بـ 010، 011، 012، أو 015.';
+        err.classList.remove('hidden');
+        return;
+      }
+
+      err.classList.add('hidden');
+      const orderId = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
+      const subtotal = state.cartItems.reduce((acc, i) => acc + (i.product.discountPrice ?? i.product.price) * i.quantity, 0);
+
+      const newOrder = {
+        id: orderId,
+        customerName: `عميل (${phone})`,
+        customerPhone: phone,
+        customerAddress: addr,
+        shippingCompany: shippingCompany,
+        items: state.cartItems.map(i => ({
+          productId: i.product.id,
+          name: i.product.name,
+          price: i.product.discountPrice ?? i.product.price,
+          quantity: i.quantity
+        })),
+        total: subtotal,
+        status: 'pending',
+        createdAt: Date.now()
+      };
+
+      state.orders = [newOrder, ...state.orders];
+      localStorage.setItem('raghad_orders', JSON.stringify(state.orders));
+
+      state.cartItems = [];
+      localStorage.setItem('raghad_cart', JSON.stringify([]));
+      updateState({ lastPlacedOrderId: orderId });
+    }
+
+    function renderCartSidebar() {
+      const root = document.getElementById('cart-sidebar-root');
+      if (!state.isCartOpen) {
+        root.innerHTML = '';
+        return;
+      }
+
+      const total = state.cartItems.reduce((acc, i) => acc + (i.product.discountPrice ?? i.product.price) * i.quantity, 0);
+
+      root.innerHTML = `
+        <div onclick="updateState({ isCartOpen: false })" class="fixed inset-0 bg-black/45 z-50 cursor-pointer"></div>
+        <div class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 flex flex-col h-full text-right animate-in slide-in-from-right duration-200" dir="rtl">
+          <div class="p-5 border-b border-purple-100 flex items-center justify-between">
+            <span class="font-bold text-lg text-gray-800 flex items-center gap-2">
+              <i data-lucide="shopping-cart" class="w-5 h-5 text-purple-700"></i>
+              <span>سلة المشتريات</span>
+            </span>
+            <button onclick="updateState({ isCartOpen: false })" class="text-gray-400 hover:text-purple-600 p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+
+          <div class="flex-grow overflow-y-auto p-5">
+            ${state.lastPlacedOrderId ? `
+              <div class="text-center py-10 space-y-4">
+                <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto"><i data-lucide="check-circle" class="w-8 h-8"></i></div>
+                <h3 class="font-bold text-xl text-gray-800">تم استلام طلبك بنجاح!</h3>
+                <p class="text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">شكراً لتسوقك من متجر رغد. نقوم الآن بتجهيز طلبك وسنتواصل معك قريباً.</p>
+                <div class="bg-purple-50 p-4 rounded-xl border border-purple-100">
+                  <span class="text-[10px] text-purple-500 font-bold block">رقم مرجع الطلب</span>
+                  <span class="font-mono text-base font-bold text-purple-800 select-all">${state.lastPlacedOrderId}</span>
+                </div>
+                <button onclick="updateState({ lastPlacedOrderId: null, isCartOpen: false })" class="w-full py-2.5 bg-purple-600 text-white rounded-xl text-xs font-semibold">استمرار التسوق</button>
+              </div>
+            ` : state.cartItems.length === 0 ? `
+              <div class="text-center py-20 text-gray-400 space-y-3">
+                <i data-lucide="shopping-cart" class="w-12 h-12 mx-auto text-purple-200"></i>
+                <h4 class="font-semibold text-gray-700 text-sm">سلتك فارغة تماماً</h4>
+              </div>
+            ` : `
+              <div class="space-y-4">
+                <div class="space-y-3 max-h-[35vh] overflow-y-auto">
+                  ${state.cartItems.map(i => `
+                    <div class="flex gap-3 bg-purple-50/40 p-3 rounded-xl border border-purple-100">
+                      <div class="w-12 h-12 bg-white rounded-lg p-0.5 border border-purple-50 flex items-center justify-center"><img src="${i.product.image}" class="w-full h-full object-contain" /></div>
+                      <div class="flex-grow text-right text-xs">
+                        <h4 class="font-semibold text-gray-800 truncate">${i.product.name}</h4>
+                        <span class="text-[10px] text-gray-400">${i.product.origin}</span>
+                        <div class="font-bold text-purple-700 mt-1">${i.product.discountPrice ?? i.product.price} جنيه</div>
+                      </div>
+                      <div class="flex flex-col items-end justify-between">
+                        <button onclick="handleCartQuantity('${i.product.id}', 0)" class="text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        <div class="flex items-center gap-1.5 bg-white border border-purple-100 rounded-lg p-1">
+                          <button onclick="handleCartQuantity('${i.product.id}', ${i.quantity - 1})" class="text-purple-600 p-0.5"><i data-lucide="minus" class="w-2.5 h-2.5"></i></button>
+                          <span class="font-bold text-xs text-gray-700 min-w-[12px] text-center">${i.quantity}</span>
+                          <button onclick="handleCartQuantity('${i.product.id}', ${i.quantity + 1})" class="text-purple-600 p-0.5"><i data-lucide="plus" class="w-2.5 h-2.5"></i></button>
+                        </div>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <form onsubmit="handlePlaceOrder(event)" class="border-t border-purple-100 pt-5 space-y-4">
+                  <h3 class="font-bold text-sm text-gray-800">بيانات التوصيل والتأكيد</h3>
+                  <div id="cart-form-error" class="bg-red-50 border border-red-200 text-red-600 text-[10px] p-2 rounded-xl hidden"></div>
+                  
+                  <div class="space-y-1 text-right">
+                    <label class="text-[10px] font-bold text-gray-600 block">رقم الجوال المصري *</label>
+                    <input id="input-customer-phone" type="tel" placeholder="01xxxxxxxxx" required class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl text-xs text-left" dir="ltr" />
+                  </div>
+                  <div class="space-y-1 text-right">
+                    <label class="text-[10px] font-bold text-gray-600 block">عنوان التوصيل الكامل بمصر *</label>
+                    <input id="input-customer-address" type="text" placeholder="المحافظة، المدينة، الشارع" required class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl text-xs" />
+                  </div>
+                  <div class="space-y-1 text-right">
+                    <label class="text-[10px] font-bold text-gray-600 block">شركة الشحن *</label>
+                    <select id="input-customer-shipping" required class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-purple-400">
+                      <option value="Bosta">بوسطة (توصيل منزلي سريع) - Bosta</option>
+                      <option value="Aramex">أرامكس (شحن محافظات) - Aramex</option>
+                      <option value="Mersal">مرسال (شحن اقتصادي) - Mersal</option>
+                      <option value="EgyptPost">البريد المصري (استلام مكتب البريد)</option>
+                    </select>
+                  </div>
+
+                  <div class="bg-purple-50 p-3 rounded-xl border border-purple-100 flex justify-between text-xs font-bold text-purple-900">
+                    <span>المجموع الكلي:</span>
+                    <span>${total} جنيه</span>
+                  </div>
+                  <button type="submit" class="w-full py-3 bg-purple-600 text-white rounded-xl text-xs font-bold transition-all shadow-md">تأكيد وشراء الأدوات</button>
+                </form>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // --- PRODUCT DETAIL POPUP ---
+
+    function changeDetailImage(length, step, event) {
+      event.stopPropagation();
+      detailImageIndex = (detailImageIndex + step + length) % length;
+      renderProductDetailModal();
+    }
+
+    function renderProductDetailModal() {
+      const root = document.getElementById('product-detail-modal-root');
+      const p = state.selectedProductForDetail;
+      if (!p) {
+        root.innerHTML = '';
+        return;
+      }
+
+      const imgs = p.images && p.images.length > 0 ? p.images : [p.image];
+      const currentImg = imgs[detailImageIndex] || p.image;
+      const hasDiscount = p.discountPrice !== undefined && p.discountPrice !== null;
+
+      root.innerHTML = `
+        <div onclick="updateState({ selectedProductForDetail: null })" class="fixed inset-0 bg-black/60 z-50 cursor-pointer"></div>
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div class="bg-white w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row pointer-events-auto text-right" dir="rtl">
+            <div class="w-full md:w-1/2 bg-purple-50/50 p-6 flex flex-col justify-center items-center relative border-b md:border-b-0 md:border-l border-purple-100">
+              <button onclick="updateState({ selectedProductForDetail: null })" class="absolute top-4 right-4 bg-white/95 text-gray-400 p-2 rounded-full md:hidden"><i data-lucide="x" class="w-5 h-5"></i></button>
+              <div class="relative w-full aspect-square flex items-center justify-center">
+                <img src="${currentImg}" alt="${p.name}" class="max-h-[220px] object-contain" />
+                <div class="absolute top-0 right-0 bg-white/95 text-purple-700 text-[10px] font-bold py-1 px-2.5 rounded-full border border-purple-100 flex items-center gap-1">
+                  <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+                  <span>${p.origin}</span>
+                </div>
+                ${imgs.length > 1 ? `
+                  <button onclick="changeDetailImage(${imgs.length}, -1, event)" class="absolute left-0 top-1/2 -translate-y-1/2 bg-white/90 text-purple-950 p-1.5 rounded-full border border-purple-50"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                  <button onclick="changeDetailImage(${imgs.length}, 1, event)" class="absolute right-0 top-1/2 -translate-y-1/2 bg-white/90 text-purple-950 p-1.5 rounded-full border border-purple-50"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                ` : ''}
+              </div>
+            </div>
+            <div class="w-full md:w-1/2 p-6 md:p-8 flex flex-col justify-between">
+              <div class="hidden md:flex justify-end mb-4">
+                <button onclick="updateState({ selectedProductForDetail: null })" class="text-gray-400 hover:text-purple-600 hover:bg-purple-50 p-1.5 rounded-xl border border-transparent hover:border-purple-100"><i data-lucide="x" class="w-5 h-5"></i></button>
+              </div>
+              <div class="space-y-3">
+                <span class="text-[10px] font-bold text-purple-600 bg-purple-50 px-2.5 py-1 rounded-full inline-block">الأدوات المكتبية المتميزة</span>
+                <h2 class="font-extrabold text-lg text-gray-900 leading-snug">${p.name}</h2>
+                <div class="flex items-center gap-1.5 text-xs text-gray-500">
+                  <i data-lucide="globe" class="w-3.5 h-3.5 text-purple-400"></i>
+                  <span>البلد:</span>
+                  <span class="font-bold text-gray-800">${p.origin}</span>
+                </div>
+                <div class="border-t border-purple-50 pt-3 mt-2 text-xs text-gray-400">
+                  <span>سعر المنتج</span>
+                  <div class="mt-1">
+                    ${hasDiscount ? `
+                      <span class="text-2xl font-black text-purple-700">${p.discountPrice} جنيه</span>
+                      <span class="text-xs text-gray-400 line-through mr-1">${p.price} جنيه</span>
+                    ` : `<span class="text-2xl font-black text-purple-700">${p.price} جنيه</span>`}
+                  </div>
+                </div>
+                ${p.description ? `
+                <div class="border-t border-purple-50 pt-3 mt-2">
+                  <span class="text-[10px] text-gray-400 block mb-1">وصف المنتج</span>
+                  <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap">${p.description}</p>
+                </div>
+                ` : ''}
+              </div>
+              <button onclick="handleAddToCart('${p.id}'); updateState({ selectedProductForDetail: null });" class="w-full py-3 bg-purple-600 text-white rounded-2xl text-xs font-bold transition-all shadow-md mt-6 flex items-center justify-center gap-2">
+                <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                <span>إضافة للسلة</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // --- SECURE BRAND TRICK PASSWORD MODAL ---
+
+    function handleUnlockSecret(e) {
+      e.preventDefault();
+      const pass = document.getElementById('input-unlock-password').value;
+      const err = document.getElementById('unlock-error-msg');
+
+      if (pass === 'RAGHAD27@store') {
+        updateState({
+          isAdminModeUnlocked: true,
+          isUnlockModalOpen: false,
+          currentView: 'admin',
+          adminAuthenticated: true
+        });
+        localStorage.setItem('raghad_admin_unlocked', 'true');
+      } else {
+        err.textContent = 'كلمة المرور السرية غير صحيحة!';
+        err.classList.remove('hidden');
+      }
+    }
+
+    function renderUnlockModal() {
+      const root = document.getElementById('unlock-modal-root');
+      if (!state.isUnlockModalOpen) {
+        root.innerHTML = '';
+        return;
+      }
+
+      root.innerHTML = `
+        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-purple-950/45 backdrop-blur-xs">
+          <div onclick="updateState({ isUnlockModalOpen: false })" class="fixed inset-0"></div>
+          <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-purple-100 relative z-10 text-right" dir="rtl">
+            <button onclick="updateState({ isUnlockModalOpen: false })" class="absolute top-4 left-4 p-1 text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="text-center mt-2 mb-4 space-y-2 flex flex-col items-center">
+              <div class="bg-purple-50 text-purple-700 p-2.5 rounded-2xl border border-purple-100"><i data-lucide="key-round" class="w-5 h-5"></i></div>
+              <h3 class="font-bold text-base text-purple-950">تفعيل لوحة الإدارة</h3>
+              <p class="text-[10px] text-gray-400 max-w-[200px] leading-relaxed">يرجى إدخال كلمة مرور الإدارة لتفعيل زر الوصول إلى لوحة التحكم</p>
+            </div>
+            <form onsubmit="handleUnlockSecret(event)" class="space-y-4">
+              <input id="input-unlock-password" type="password" required placeholder="••••••••" class="w-full px-4 py-2 bg-white border border-purple-100 rounded-xl text-center tracking-widest text-xs" />
+              <p id="unlock-error-msg" class="text-xs text-red-500 font-bold text-center hidden"></p>
+              <button type="submit" class="w-full bg-purple-600 text-white font-bold py-2 rounded-xl text-xs shadow-xs">تأكيد وتفعيل</button>
+            </form>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // --- STORY PAGE VIEW ---
+
+    function renderAboutPage(container) {
+      container.innerHTML = `
+        <div class="max-w-4xl mx-auto my-6 bg-white rounded-3xl border border-purple-100 p-8 md:p-10 shadow-xs space-y-8 text-right" dir="rtl">
+          <div class="flex items-center gap-3 border-b border-purple-100 pb-4">
+            <div class="bg-purple-100 p-2.5 rounded-2xl text-purple-700"><i data-lucide="store" class="w-5 h-5"></i></div>
+            <div>
+              <h2 class="font-bold text-xl text-purple-950">قصتنا وعشقنا للتميز</h2>
+              <span class="text-[10px] text-purple-500 font-sans">متجر رغد للأدوات المكتبية المتميزة</span>
+            </div>
+          </div>
+          <div class="space-y-4 text-gray-600 leading-relaxed text-xs sm:text-sm">
+            <p>مرحباً بكم في <strong>متجر رغد للأدوات المكتبية</strong>، المكان الذي تلتئم فيه الفخامة بالعملية لتُشكل تحفة على سطح مكتبكم المفضل.</p>
+            <p>نحن في متجر رغد لا نقدم مجرد بضائع، بل ننتقي لكِ أفضل الأدوات المكتبية المستوردة المصنوعة في بلاد عريقة تمتاز بالدقة، كاليابان بنظمه المتقنة وألمانيا بعراقة هندستها والسويد بلمسته الخشبية الهادئة.</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+            <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+              <h4 class="font-bold text-purple-900 text-xs mb-1">لماذا تختارين متجرنا؟</h4>
+              <p class="text-[10px] text-gray-500 leading-relaxed">جميع أدواتنا المكتبية المعروضة تلتزم بمعايير الجودة القصوى والتصميم الفريد الذي يبعث على الهدوء والراحة البصرية.</p>
+            </div>
+            <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+              <h4 class="font-bold text-purple-900 text-xs mb-1">التوصيل وخدمة العملاء</h4>
+              <p class="text-[10px] text-gray-500 leading-relaxed">نسهل لكِ رحلة الطلب من خلال واجهتنا المريحة، لتوصل لكِ شحنتك مغلفة بعناية وبأسرع وقت.</p>
+            </div>
+          </div>
+          <div class="pt-4 text-center border-t border-purple-50">
+            <button onclick="navigateTo('home')" class="px-5 py-2.5 bg-purple-600 text-white rounded-xl text-xs font-semibold">تسوق الأدوات المكتبية الآن</button>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // --- ADMIN DASHBOARD ---
+
+    function handleAdminLoginSubmit(e) {
+      e.preventDefault();
+      const pass = document.getElementById('input-admin-password').value;
+      const err = document.getElementById('admin-login-error');
+      if (pass === 'RAGHAD27@store') {
+        updateState({ adminAuthenticated: true });
+      } else {
+        err.textContent = 'كلمة المرور غير صحيحة! يرجى المحاولة مرة أخرى.';
+        err.classList.remove('hidden');
+      }
+    }
+
+    function handleAdminLogout() {
+      localStorage.removeItem('raghad_admin_unlocked');
+      updateState({
+        adminAuthenticated: false,
+        isAdminModeUnlocked: false
+      });
+      navigateTo('home');
+    }
+
+    function processProductFiles(files) {
+      const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
+      if (valid.length === 0) return;
+      
+      Array.from(valid).forEach(file => {
+        const r = new FileReader();
+        r.onload = (e) => {
+          state.adminForm.images.push({ base64: e.target.result, name: file.name });
+          renderAdminPanel();
+        };
+        r.readAsDataURL(file);
+      });
+    }
+
+    function removeAdminFormImage(idx, e) {
+      e.stopPropagation();
+      state.adminForm.images.splice(idx, 1);
+      renderAdminPanel();
+    }
+
+    function selectCountryDropdown(c) {
+      state.adminForm.origin = c;
+      state.isOriginDropdownOpen = false;
+      state.originSearchQuery = '';
+      renderAdminPanel();
+    }
+
+    function handleAddProductAction(e) {
+      e.preventDefault();
+      const name = document.getElementById('input-product-name').value.trim();
+      const price = parseFloat(document.getElementById('input-product-price').value);
+      const discountValStr = document.getElementById('input-product-discount-price').value.trim();
+      const description = document.getElementById('input-product-description').value.trim();
+      const origin = state.adminForm.origin;
+
+      const err = document.getElementById('product-form-error');
+      const succ = document.getElementById('product-form-success');
+
+      if (!name || isNaN(price) || price <= 0 || !origin || state.adminForm.images.length === 0) {
+        err.textContent = 'يرجى ملء كافة الحقول الإلزامية ورفع صورة واحدة على الأقل.';
+        err.classList.remove('hidden');
+        succ.classList.add('hidden');
+        return;
+      }
+
+      let discountPrice = undefined;
+      if (discountValStr) {
+        discountPrice = parseFloat(discountValStr);
+        if (isNaN(discountPrice) || discountPrice <= 0 || discountPrice >= price) {
+          err.textContent = 'سعر الخصم غير صالح. يجب أن يكون أصغر من السعر الأساسي.';
+          err.classList.remove('hidden');
+          succ.classList.add('hidden');
+          return;
+        }
+      }
+
+      const newP = {
+        id: `prod-${Date.now()}`,
+        name: name,
+        description: description,
+        price: price,
+        discountPrice: discountPrice,
+        origin: origin,
+        image: state.adminForm.images[0].base64,
+        images: state.adminForm.images.map(img => img.base64),
+        createdAt: Date.now()
+      };
+
+      state.products = [newP, ...state.products];
+      localStorage.setItem('raghad_products', JSON.stringify(state.products));
+
+      state.adminForm = { origin: '', images: [] };
+      succ.textContent = 'تم إضافة المنتج بنجاح إلى المعرض!';
+      succ.classList.remove('hidden');
+      err.classList.add('hidden');
+
+      render();
+    }
+
+    function deleteProduct(id) {
+      if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذا المنتج نهائياً من المتجر؟')) {
+        state.products = state.products.filter(p => p.id !== id);
+        localStorage.setItem('raghad_products', JSON.stringify(state.products));
+        render();
+      }
+    }
+
+    function deleteOrder(id) {
+      if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذا الطلب نهائياً؟')) {
+        state.orders = state.orders.filter(o => o.id !== id);
+        localStorage.setItem('raghad_orders', JSON.stringify(state.orders));
+        render();
+      }
+    }
+
+    function changeOrderStatus(orderId, status) {
+      const order = state.orders.find(o => o.id === orderId);
+      if (order) order.status = status;
+      localStorage.setItem('raghad_orders', JSON.stringify(state.orders));
+      render();
+    }
+
+    function renderAdminPanel() {
+      const container = document.getElementById('main-content');
+      if (state.currentView !== 'admin') return;
+
+      if (!state.adminAuthenticated) {
+        container.innerHTML = `
+          <div class="max-w-md mx-auto my-6 bg-white rounded-3xl border border-purple-100 p-8 shadow-xs text-center text-right" dir="rtl">
+            <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4"><i data-lucide="lock" class="w-6 h-6"></i></div>
+            <h2 class="font-bold text-lg text-gray-800 mb-1">تسجيل دخول الإدارة</h2>
+            <p class="text-xs text-gray-400 mb-6 leading-relaxed">لوحة التحكم هذه مخصصة لإدارة المتجر ومتابعة الطلبات المفتوحة.</p>
+            <form onsubmit="handleAdminLoginSubmit(event)" class="space-y-4">
+              <div id="admin-login-error" class="bg-red-50 border border-red-200 text-red-600 text-[10px] p-2 rounded-lg hidden"></div>
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold text-gray-600 block">كلمة المرور السرية</label>
+                <input id="input-admin-password" type="password" required placeholder="أدخل كلمة المرور" class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl text-center text-xs" />
+              </div>
+              <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold">تسجيل الدخول</button>
+            </form>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      const tab = state.activeTab || 'products';
+
+      container.innerHTML = `
+        <div class="bg-white rounded-3xl border border-purple-100 p-6 md:p-8 shadow-xs text-right" dir="rtl">
+          <div class="flex items-center justify-between border-b border-purple-50 pb-5 mb-6">
+            <div>
+              <h2 class="font-bold text-xl text-purple-900">لوحة التحكم والمتابعة</h2>
+              <p class="text-xs text-gray-400 mt-1">مرحباً رغد! يمكنك إضافة منتجات ومتابعة الطلبات من هنا.</p>
+            </div>
+            <button onclick="handleAdminLogout()" class="px-3.5 py-1.5 text-xs text-red-600 border border-red-100 rounded-lg hover:bg-red-50">خروج</button>
+          </div>
+
+          <div class="flex border-b border-purple-100 mb-6 gap-2 text-xs font-semibold">
+            <button onclick="updateState({ activeTab: 'products' })" class="pb-2.5 px-3 border-b-2 transition-all flex items-center gap-1 ${tab === 'products' ? 'border-purple-600 text-purple-700' : 'border-transparent text-gray-400'}"><i data-lucide="package" class="w-3.5 h-3.5"></i>الأدوات المكتبية (${state.products.length})</button>
+            <button onclick="updateState({ activeTab: 'orders' })" class="pb-2.5 px-3 border-b-2 transition-all flex items-center gap-1 ${tab === 'orders' ? 'border-purple-600 text-purple-700' : 'border-transparent text-gray-400'}"><i data-lucide="clipboard-list" class="w-3.5 h-3.5"></i>الطلبات الواردة (${state.orders.length})</button>
+          </div>
+
+          ${tab === 'products' ? `
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div class="lg:col-span-1">
+                <div class="bg-purple-50/50 border border-purple-100 rounded-2xl p-5 space-y-4">
+                  <h3 class="font-bold text-sm text-purple-950 flex items-center gap-1"><i data-lucide="plus" class="w-4 h-4 text-purple-600"></i>إضافة أداة مكتبية جديدة</h3>
+                  <div id="product-form-error" class="bg-red-50 border border-red-200 text-red-600 text-[10px] p-2 rounded-lg hidden"></div>
+                  <div id="product-form-success" class="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] p-2 rounded-lg hidden"></div>
+
+                  <form onsubmit="handleAddProductAction(event)" class="space-y-3.5 text-xs">
+                    <div class="space-y-1">
+                      <label class="font-bold text-gray-600 block">اسم المنتج *</label>
+                      <input id="input-product-name" type="text" required class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl" />
+                    </div>
+                    <div class="space-y-1">
+                      <label class="font-bold text-gray-600 block">السعر العادي (بالجنيه المصري) *</label>
+                      <input id="input-product-price" type="number" step="0.01" required class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl" />
+                    </div>
+                    <div class="space-y-1">
+                      <label class="font-bold text-gray-600 block">السعر بعد الخصم (بالجنيه - اختياري)</label>
+                      <input id="input-product-discount-price" type="number" step="0.01" class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl" />
+                    </div>
+                    <div class="space-y-1">
+                      <label class="font-bold text-gray-600 block">وصف المنتج (اختياري)</label>
+                      <textarea id="input-product-description" rows="3" placeholder="اكتب تفاصيل ووصف مميز للأداة المكتبية هنا..." class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl resize-none focus:outline-none focus:ring-1 focus:ring-purple-400 focus:border-purple-400"></textarea>
+                    </div>
+
+                    <div class="space-y-1 relative">
+                      <label class="font-bold text-gray-600 block">بلد المنشأ *</label>
+                      <button type="button" onclick="updateState({ isOriginDropdownOpen: !state.isOriginDropdownOpen })" class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl text-right flex items-center justify-between">
+                        <span class="${state.adminForm.origin ? 'text-gray-800' : 'text-gray-400'}">${state.adminForm.origin || 'اختر بلد المنشأ'}</span>
+                        <i data-lucide="chevron-down" class="w-4 h-4 text-purple-400"></i>
+                      </button>
+                      ${state.isOriginDropdownOpen ? `
+                        <div class="absolute right-0 left-0 mt-1 bg-white border border-purple-100 rounded-xl shadow-lg z-50 max-h-48 overflow-y-auto py-1">
+                          ${COUNTRIES_LIST.map(c => `<button type="button" onclick="selectCountryDropdown('${c}')" class="w-full text-right px-3 py-1.5 hover:bg-purple-50 block">${c}</button>`).join('')}
+                        </div>
+                      ` : ''}
+                    </div>
+
+                    <div class="space-y-1">
+                      <label class="font-bold text-gray-600 block">صور المنتج *</label>
+                      <div onclick="document.getElementById('input-product-image-file').click()" class="border border-dashed border-purple-200 rounded-xl p-3 text-center bg-white cursor-pointer hover:border-purple-400">
+                        <input id="input-product-image-file" type="file" onchange="processProductFiles(this.files)" accept="image/*" multiple class="hidden" />
+                        <i data-lucide="file-up" class="w-6 h-6 mx-auto text-purple-400 mb-1"></i>
+                        <span class="text-[10px] text-gray-500 block">اضغط لرفع صور المنتج</span>
+                      </div>
+                      ${state.adminForm.images.length > 0 ? `
+                        <div class="grid grid-cols-4 gap-1.5 mt-2">
+                          ${state.adminForm.images.map((img, idx) => `
+                            <div class="relative aspect-square border border-purple-100 rounded-lg overflow-hidden">
+                              <img src="${img.base64}" class="w-full h-full object-cover" />
+                              <button type="button" onclick="removeAdminFormImage(${idx}, event)" class="absolute top-0.5 right-0.5 w-4.5 h-4.5 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px]">✕</button>
+                            </div>
+                          `).join('')}
+                        </div>
+                      ` : ''}
+                    </div>
+
+                    <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl transition-all">حفظ وإضافة المنتج</button>
+                  </form>
+                </div>
+              </div>
+
+              <div class="lg:col-span-2 space-y-4">
+                <h3 class="font-bold text-sm text-gray-800">الأدوات المعروضة حالياً</h3>
+                <div class="border border-purple-50 rounded-xl overflow-hidden bg-white">
+                  <table class="w-full text-right text-xs">
+                    <thead>
+                      <tr class="bg-purple-50 border-b border-purple-100 text-purple-900 font-bold">
+                        <th class="py-2.5 px-3">الصورة</th>
+                        <th class="py-2.5 px-3">الاسم</th>
+                        <th class="py-2.5 px-3">البلد</th>
+                        <th class="py-2.5 px-3">السعر</th>
+                        <th class="py-2.5 px-3 text-center">حذف</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-purple-50">
+                      ${state.products.map(p => `
+                        <tr>
+                          <td class="py-2.5 px-3"><img src="${p.image}" class="w-8 h-8 object-contain" /></td>
+                          <td class="py-2.5 px-3 font-semibold truncate max-w-[150px]">${p.name}</td>
+                          <td class="py-2.5 px-3">${p.origin}</td>
+                          <td class="py-2.5 px-3 font-bold text-purple-700">${p.discountPrice ?? p.price} جنيه</td>
+                          <td class="py-2.5 px-3 text-center"><button onclick="deleteProduct('${p.id}')" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" class="w-4 h-4 mx-auto"></i></button></td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ` : `
+            <div class="space-y-4">
+              ${state.orders.length === 0 ? `
+                <div class="bg-gray-50 p-12 rounded-2xl text-center border border-dashed border-gray-200 text-gray-400">لا توجد طلبات واردة حتى الآن.</div>
+              ` : state.orders.map(o => `
+                <div class="border border-purple-100 rounded-2xl p-4 bg-white shadow-3xs space-y-3">
+                  <div class="flex justify-between items-center border-b border-purple-50 pb-2">
+                    <span class="font-bold text-purple-900">طلب رقم: ${o.id}</span>
+                    <div class="flex items-center gap-2">
+                      <select onchange="changeOrderStatus('${o.id}', this.value)" class="text-[10px] font-bold rounded-lg border p-1 ${o.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}">
+                        <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>⏳ قيد المراجعة</option>
+                        <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>✅ تم الشحن</option>
+                        <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>❌ ملغي</option>
+                      </select>
+                      <button onclick="deleteOrder('${o.id}')" class="text-gray-400 hover:text-red-500"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <div class="bg-purple-50/55 p-3 rounded-lg space-y-1">
+                      <h4 class="font-bold text-purple-900 border-b border-purple-100 pb-1">المستلم</h4>
+                      <p>الجوال: ${o.customerPhone}</p>
+                      <p>العنوان: ${o.customerAddress}</p>
+                      <p class="font-semibold text-purple-700">الشحن عبر: ${o.shippingCompany === 'Bosta' ? 'بوسطة (Bosta)' : o.shippingCompany === 'Aramex' ? 'أرامكس (Aramex)' : o.shippingCompany === 'Mersal' ? 'مرسال (Mersal)' : o.shippingCompany === 'EgyptPost' ? 'البريد المصري' : o.shippingCompany || 'بوسطة'}</p>
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                      <h4 class="font-bold text-purple-900 border-b border-purple-100 pb-1">الأدوات المكتبية</h4>
+                      ${o.items.map(item => `<div class="flex justify-between text-[11px]">${item.name} x${item.quantity} <span>${item.price * item.quantity} جنيه</span></div>`).join('')}
+                      <div class="flex justify-between font-bold border-t pt-2 mt-2"><span>المجموع:</span><span>${o.total} جنيه</span></div>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `}
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // --- MAIN RENDER COORDINATOR ---
+
+    function render() {
+      renderNavbar();
+      renderCatalog();
+      renderAdminPanel();
+      renderUnlockModal();
+      renderCartSidebar();
+      renderProductDetailModal();
+
+      // Setup page specific renders
+      const mainEl = document.getElementById('main-content');
+      if (state.currentView === 'home') {
+        document.getElementById('catalog-filters').classList.remove('hidden');
+        document.getElementById('hero-section').classList.remove('hidden');
+        mainEl.innerHTML = '';
+      } else if (state.currentView === 'about') {
+        document.getElementById('catalog-filters').classList.add('hidden');
+        document.getElementById('hero-section').classList.add('hidden');
+        renderAboutPage(mainEl);
+      } else if (state.currentView === 'admin') {
+        document.getElementById('catalog-filters').classList.add('hidden');
+        document.getElementById('hero-section').classList.add('hidden');
+        renderAdminPanel();
+      }
+
+      lucide.createIcons();
+    }
+
+    // --- LIFE CYCLE INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      // Restore dynamic models
+      const unlocked = localStorage.getItem('raghad_admin_unlocked') === 'true';
+      const params = new URLSearchParams(window.location.search);
+      const queryAdmin = params.get('admin') === 'true' || params.get('raghad_admin') === 'true';
+
+      if (unlocked || queryAdmin) {
+        state.isAdminModeUnlocked = true;
+        state.adminAuthenticated = true;
+        if (queryAdmin) {
+          localStorage.setItem('raghad_admin_unlocked', 'true');
+        }
+      }
+
+      // Clear the products initially to start empty as requested by the user
+      const isWiped = localStorage.getItem('raghad_products_wiped_v3');
+      if (!isWiped) {
+        localStorage.setItem('raghad_products', '[]');
+        localStorage.setItem('raghad_products_wiped_v3', 'true');
+      }
+
+      const prods = localStorage.getItem('raghad_products');
+      state.products = prods ? JSON.parse(prods) : [];
+
+      const ords = localStorage.getItem('raghad_orders');
+      state.orders = ords ? JSON.parse(ords) : [];
+
+      const cart = localStorage.getItem('raghad_cart');
+      state.cartItems = cart ? JSON.parse(cart) : [];
+
+      document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+      render();
+    });
+  </script>
+</body>
+</html>
