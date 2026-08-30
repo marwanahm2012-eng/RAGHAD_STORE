@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <script>
     tailwind.config = {
       theme: {
@@ -179,6 +180,9 @@
   <!-- Hidden Secure Unlock Admin Modal -->
   <div id="unlock-modal-root"></div>
 
+  <!-- Account Modal -->
+  <div id="account-modal-root"></div>
+
   <!-- Core JavaScript State & Render Logic -->
   <script>
     // App State Configuration
@@ -196,6 +200,10 @@
       sortOrder: 'newest',
       adminAuthenticated: false,
       isUnlockModalOpen: false,
+      isAccountModalOpen: false,
+      authMode: 'login',
+      currentUser: null,
+      apiConfig: { turnstileSiteKey: '' },
       adminForm: {
         origin: '',
         images: []
@@ -206,6 +214,96 @@
 
     const imageIndexes = {};
     let detailImageIndex = 0;
+
+
+
+    const API_BASE = '';
+
+    async function apiFetch(path, options = {}) {
+      const headers = options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' };
+      const res = await fetch(`${API_BASE}${path}`, {
+        credentials: 'include',
+        ...options,
+        headers: { ...headers, ...(options.headers || {}) }
+      });
+      let data = null;
+      try { data = await res.json(); } catch (_) { data = {}; }
+      if (!res.ok) {
+        throw new Error(data.error || 'تعذر الاتصال بالخادم.');
+      }
+      return data;
+    }
+
+    async function loadApiConfig() {
+      try { state.apiConfig = await apiFetch('/api/config'); } catch (_) { state.apiConfig = { turnstileSiteKey: '' }; }
+    }
+
+    async function loadCurrentUser() {
+      try {
+        const data = await apiFetch('/api/auth/me');
+        state.currentUser = data.authenticated ? data.user : null;
+        state.isAdminModeUnlocked = !!(data.authenticated && data.user && data.user.isAdmin);
+        state.adminAuthenticated = state.isAdminModeUnlocked;
+      } catch (_) {
+        state.currentUser = null;
+        state.isAdminModeUnlocked = false;
+        state.adminAuthenticated = false;
+      }
+    }
+
+    async function loadProducts() {
+      try {
+        const data = await apiFetch('/api/products');
+        state.products = data.products || [];
+      } catch (err) {
+        console.error(err);
+        state.products = [];
+      }
+    }
+
+    async function loadAdminOrders() {
+      if (!state.isAdminModeUnlocked) return;
+      try {
+        const data = await apiFetch('/api/admin/orders');
+        state.orders = data.orders || [];
+      } catch (err) {
+        console.error(err);
+        state.orders = [];
+      }
+    }
+
+
+
+    async function getTurnstileToken(action) {
+      const siteKey = state.apiConfig && state.apiConfig.turnstileSiteKey;
+      if (!siteKey || !window.turnstile) return '';
+      return new Promise((resolve, reject) => {
+        const holder = document.createElement('div');
+        holder.className = 'hidden';
+        document.body.appendChild(holder);
+        const widgetId = turnstile.render(holder, {
+          sitekey: siteKey,
+          size: 'invisible',
+          action,
+          callback: token => {
+            document.body.removeChild(holder);
+            resolve(token);
+          },
+          'error-callback': () => {
+            document.body.removeChild(holder);
+            reject(new Error('تعذر التحقق الأمني.'));
+          }
+        });
+        turnstile.execute(widgetId);
+      });
+    }
+
+    async function refreshStoreData() {
+      await loadCurrentUser();
+      await loadProducts();
+      await loadAdminOrders();
+      render();
+    }
 
     const COUNTRIES_LIST = [
       "المملكة العربية السعودية", "اليابان", "كوريا الجنوبية", "ألمانيا", "الصين", "تايوان",
@@ -283,6 +381,9 @@
             <a href="https://whatsapp.com/channel/0029Vb89IphHltYBYrHvCH16" target="_blank" rel="noopener noreferrer" class="bg-emerald-50 hover:bg-emerald-100/80 text-emerald-600 p-2.5 rounded-2xl border border-emerald-100/60 transition-all flex items-center justify-center">
               <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.262 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.457L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.725 1.451 5.437 0 9.862-4.414 9.865-9.848.001-2.63-1.019-5.101-2.873-6.958C16.502 1.982 14.04 1.96 11.957 1.96c-5.437 0-9.863 4.414-9.866 9.85-.001 1.902.486 3.758 1.412 5.361l-.926 3.38 3.472-.912c.002-.001.002-.001.002-.001zm11.367-6.393c-.27-.136-1.603-.79-1.854-.882-.25-.091-.433-.136-.615.137-.182.271-.7.881-.858 1.062-.158.182-.317.204-.587.068-.271-.136-1.144-.421-2.18-1.348-.806-.717-1.348-1.604-1.506-1.875-.158-.271-.017-.417.118-.553.122-.121.271-.317.407-.475.136-.158.182-.271.272-.453.091-.182.045-.34-.023-.476-.068-.136-.615-1.482-.843-2.031-.222-.533-.445-.461-.614-.469-.158-.008-.34-.01-.522-.01s-.476.068-.725.34c-.25.271-.952.93-.952 2.267s.974 2.63 1.11 2.812c.136.182 1.917 2.926 4.643 4.103.648.28 1.154.448 1.548.573.651.207 1.243.178 1.71.109.522-.078 1.604-.656 1.831-1.256.227-.6.227-1.114.159-1.222-.069-.108-.25-.172-.52-.308z"/></svg>
             </a>
+            <button onclick="updateState({ isAccountModalOpen: true })" class="bg-purple-50 hover:bg-purple-100 text-purple-700 p-2.5 rounded-2xl border border-purple-100 transition-all flex items-center justify-center shadow-3xs" title="حسابي">
+              <i data-lucide="user" class="w-5 h-5"></i>
+            </button>
             <button onclick="updateState({ isCartOpen: true })" class="relative bg-purple-50 hover:bg-purple-100 text-purple-700 p-2.5 rounded-2xl border border-purple-100 transition-all flex items-center justify-center shadow-3xs">
               <i data-lucide="shopping-bag" class="w-5 h-5"></i>
               ${cartCount > 0 ? `<span class="absolute -top-1.5 -left-1.5 bg-purple-600 text-white text-[10px] font-bold w-5.5 h-5.5 rounded-full flex items-center justify-center border-2 border-white">${cartCount}</span>` : ''}
@@ -490,14 +591,11 @@
       render();
     }
 
-    function handlePlaceOrder(e) {
+    async function handlePlaceOrder(e) {
       e.preventDefault();
       const phone = document.getElementById('input-customer-phone').value.trim();
       const addr = document.getElementById('input-customer-address').value.trim();
       const err = document.getElementById('cart-form-error');
-
-      const shippingEl = document.getElementById('input-customer-shipping');
-      const shippingCompany = shippingEl ? shippingEl.value : 'Bosta';
 
       if (!phone || !addr) {
         err.textContent = 'الرجاء تعبئة جميع الحقول المطلوبة.';
@@ -512,32 +610,24 @@
       }
 
       err.classList.add('hidden');
-      const orderId = `ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
-      const subtotal = state.cartItems.reduce((acc, i) => acc + (i.product.discountPrice ?? i.product.price) * i.quantity, 0);
-
-      const newOrder = {
-        id: orderId,
-        customerName: `عميل (${phone})`,
-        customerPhone: phone,
-        customerAddress: addr,
-        shippingCompany: shippingCompany,
-        items: state.cartItems.map(i => ({
-          productId: i.product.id,
-          name: i.product.name,
-          price: i.product.discountPrice ?? i.product.price,
-          quantity: i.quantity
-        })),
-        total: subtotal,
-        status: 'pending',
-        createdAt: Date.now()
-      };
-
-      state.orders = [newOrder, ...state.orders];
-      localStorage.setItem('raghad_orders', JSON.stringify(state.orders));
-
-      state.cartItems = [];
-      localStorage.setItem('raghad_cart', JSON.stringify([]));
-      updateState({ lastPlacedOrderId: orderId });
+      try {
+        const data = await apiFetch('/api/orders', {
+          method: 'POST',
+          body: JSON.stringify({
+            customerPhone: phone,
+            customerAddress: addr,
+            items: state.cartItems.map(i => ({ productId: i.product.id, quantity: i.quantity })),
+            turnstileToken: await getTurnstileToken('order')
+          })
+        });
+        state.cartItems = [];
+        localStorage.setItem('raghad_cart', JSON.stringify([]));
+        updateState({ lastPlacedOrderId: data.orderNumber || data.orderId });
+        if (data.whatsappUrl) window.open(data.whatsappUrl, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        err.textContent = error.message;
+        err.classList.remove('hidden');
+      }
     }
 
     function renderCartSidebar() {
@@ -612,16 +702,6 @@
                     <label class="text-[10px] font-bold text-gray-600 block">عنوان التوصيل الكامل بمصر *</label>
                     <input id="input-customer-address" type="text" placeholder="المحافظة، المدينة، الشارع" required class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl text-xs" />
                   </div>
-                  <div class="space-y-1 text-right">
-                    <label class="text-[10px] font-bold text-gray-600 block">شركة الشحن *</label>
-                    <select id="input-customer-shipping" required class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl text-xs text-gray-700 focus:outline-none focus:ring-1 focus:ring-purple-400">
-                      <option value="Bosta">بوسطة (توصيل منزلي سريع) - Bosta</option>
-                      <option value="Aramex">أرامكس (شحن محافظات) - Aramex</option>
-                      <option value="Mersal">مرسال (شحن اقتصادي) - Mersal</option>
-                      <option value="EgyptPost">البريد المصري (استلام مكتب البريد)</option>
-                    </select>
-                  </div>
-
                   <div class="bg-purple-50 p-3 rounded-xl border border-purple-100 flex justify-between text-xs font-bold text-purple-900">
                     <span>المجموع الكلي:</span>
                     <span>${total} جنيه</span>
@@ -713,49 +793,74 @@
       lucide.createIcons();
     }
 
-    // --- SECURE BRAND TRICK PASSWORD MODAL ---
+    // --- ACCOUNT & AUTH MODAL ---
 
-    function handleUnlockSecret(e) {
+    async function handleAuthSubmit(e) {
       e.preventDefault();
-      const pass = document.getElementById('input-unlock-password').value;
-      const err = document.getElementById('unlock-error-msg');
-
-      if (pass === 'RAGHAD27@store') {
-        updateState({
-          isAdminModeUnlocked: true,
-          isUnlockModalOpen: false,
-          currentView: 'admin',
-          adminAuthenticated: true
+      const err = document.getElementById('auth-error-msg');
+      const identifier = document.getElementById('input-auth-identifier').value.trim();
+      const password = document.getElementById('input-auth-password').value;
+      try {
+        const path = state.authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+        await apiFetch(path, {
+          method: 'POST',
+          body: JSON.stringify({ identifier, password, turnstileToken: await getTurnstileToken(state.authMode) })
         });
-        localStorage.setItem('raghad_admin_unlocked', 'true');
-      } else {
-        err.textContent = 'كلمة المرور السرية غير صحيحة!';
+        state.isAccountModalOpen = false;
+        await refreshStoreData();
+      } catch (error) {
+        err.textContent = error.message;
         err.classList.remove('hidden');
       }
     }
 
+    async function handleAccountLogout() {
+      await apiFetch('/api/auth/logout', { method: 'POST', body: JSON.stringify({}) });
+      state.currentUser = null;
+      state.isAdminModeUnlocked = false;
+      state.adminAuthenticated = false;
+      state.isAccountModalOpen = false;
+      state.orders = [];
+      navigateTo('home');
+      render();
+    }
+
     function renderUnlockModal() {
-      const root = document.getElementById('unlock-modal-root');
-      if (!state.isUnlockModalOpen) {
+      document.getElementById('unlock-modal-root').innerHTML = '';
+    }
+
+    function renderAccountModal() {
+      const root = document.getElementById('account-modal-root');
+      if (!state.isAccountModalOpen) {
         root.innerHTML = '';
         return;
       }
-
+      const isRegister = state.authMode === 'register';
       root.innerHTML = `
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-purple-950/45 backdrop-blur-xs">
-          <div onclick="updateState({ isUnlockModalOpen: false })" class="fixed inset-0"></div>
+          <div onclick="updateState({ isAccountModalOpen: false })" class="fixed inset-0"></div>
           <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-purple-100 relative z-10 text-right" dir="rtl">
-            <button onclick="updateState({ isUnlockModalOpen: false })" class="absolute top-4 left-4 p-1 text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <button onclick="updateState({ isAccountModalOpen: false })" class="absolute top-4 left-4 p-1 text-gray-400"><i data-lucide="x" class="w-5 h-5"></i></button>
             <div class="text-center mt-2 mb-4 space-y-2 flex flex-col items-center">
-              <div class="bg-purple-50 text-purple-700 p-2.5 rounded-2xl border border-purple-100"><i data-lucide="key-round" class="w-5 h-5"></i></div>
-              <h3 class="font-bold text-base text-purple-950">تفعيل لوحة الإدارة</h3>
-              <p class="text-[10px] text-gray-400 max-w-[200px] leading-relaxed">يرجى إدخال كلمة مرور الإدارة لتفعيل زر الوصول إلى لوحة التحكم</p>
+              <div class="bg-purple-50 text-purple-700 p-2.5 rounded-2xl border border-purple-100"><i data-lucide="user" class="w-5 h-5"></i></div>
+              <h3 class="font-bold text-base text-purple-950">حسابي</h3>
+              <p class="text-[10px] text-gray-400 max-w-[240px] leading-relaxed">${state.currentUser ? 'أنتِ مسجلة الدخول ويمكنك استخدام المتجر بشكل طبيعي.' : isRegister ? 'أنشئي حساباً باستخدام معرف وكلمة مرور آمنة.' : 'سجلي الدخول باستخدام المعرف وكلمة المرور.'}</p>
             </div>
-            <form onsubmit="handleUnlockSecret(event)" class="space-y-4">
-              <input id="input-unlock-password" type="password" required placeholder="••••••••" class="w-full px-4 py-2 bg-white border border-purple-100 rounded-xl text-center tracking-widest text-xs" />
-              <p id="unlock-error-msg" class="text-xs text-red-500 font-bold text-center hidden"></p>
-              <button type="submit" class="w-full bg-purple-600 text-white font-bold py-2 rounded-xl text-xs shadow-xs">تأكيد وتفعيل</button>
-            </form>
+            ${state.currentUser ? `
+              <div class="bg-purple-50 p-4 rounded-xl border border-purple-100 text-center space-y-2">
+                <span class="text-[10px] text-purple-500 font-bold block">المعرف</span>
+                <span class="font-bold text-purple-900">${state.currentUser.identifier}</span>
+              </div>
+              <button onclick="handleAccountLogout()" class="w-full mt-4 bg-red-50 text-red-600 border border-red-100 font-bold py-2 rounded-xl text-xs shadow-xs">تسجيل الخروج</button>
+            ` : `
+              <form onsubmit="handleAuthSubmit(event)" class="space-y-4">
+                <div id="auth-error-msg" class="bg-red-50 border border-red-200 text-red-600 text-[10px] p-2 rounded-lg hidden"></div>
+                <input id="input-auth-identifier" type="text" required placeholder="المعرف" class="w-full px-4 py-2 bg-white border border-purple-100 rounded-xl text-center text-xs" />
+                <input id="input-auth-password" type="password" required placeholder="كلمة المرور" class="w-full px-4 py-2 bg-white border border-purple-100 rounded-xl text-center text-xs" />
+                <button type="submit" class="w-full bg-purple-600 text-white font-bold py-2 rounded-xl text-xs shadow-xs">${isRegister ? 'إنشاء حساب' : 'تسجيل الدخول'}</button>
+                <button type="button" onclick="updateState({ authMode: '${isRegister ? 'login' : 'register'}' })" class="w-full text-purple-600 text-xs font-bold">${isRegister ? 'لدي حساب بالفعل' : 'إنشاء حساب جديد'}</button>
+              </form>
+            `}
           </div>
         </div>
       `;
@@ -800,37 +905,31 @@
 
     function handleAdminLoginSubmit(e) {
       e.preventDefault();
-      const pass = document.getElementById('input-admin-password').value;
-      const err = document.getElementById('admin-login-error');
-      if (pass === 'RAGHAD27@store') {
-        updateState({ adminAuthenticated: true });
-      } else {
-        err.textContent = 'كلمة المرور غير صحيحة! يرجى المحاولة مرة أخرى.';
-        err.classList.remove('hidden');
-      }
+      updateState({ isAccountModalOpen: true, authMode: 'login' });
     }
 
-    function handleAdminLogout() {
-      localStorage.removeItem('raghad_admin_unlocked');
-      updateState({
-        adminAuthenticated: false,
-        isAdminModeUnlocked: false
-      });
-      navigateTo('home');
+    async function handleAdminLogout() {
+      await handleAccountLogout();
     }
 
-    function processProductFiles(files) {
+    async function processProductFiles(files) {
       const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
       if (valid.length === 0) return;
-      
-      Array.from(valid).forEach(file => {
-        const r = new FileReader();
-        r.onload = (e) => {
-          state.adminForm.images.push({ base64: e.target.result, name: file.name });
+      for (const file of valid) {
+        const form = new FormData();
+        form.append('image', file, file.name);
+        try {
+          const data = await apiFetch('/api/admin/images', { method: 'POST', body: form });
+          state.adminForm.images.push({ url: data.url, name: file.name });
           renderAdminPanel();
-        };
-        r.readAsDataURL(file);
-      });
+        } catch (error) {
+          const err = document.getElementById('product-form-error');
+          if (err) {
+            err.textContent = error.message;
+            err.classList.remove('hidden');
+          }
+        }
+      }
     }
 
     function removeAdminFormImage(idx, e) {
@@ -846,7 +945,7 @@
       renderAdminPanel();
     }
 
-    function handleAddProductAction(e) {
+    async function handleAddProductAction(e) {
       e.preventDefault();
       const name = document.getElementById('input-product-name').value.trim();
       const price = parseFloat(document.getElementById('input-product-price').value);
@@ -875,49 +974,53 @@
         }
       }
 
-      const newP = {
-        id: `prod-${Date.now()}`,
-        name: name,
-        description: description,
-        price: price,
-        discountPrice: discountPrice,
-        origin: origin,
-        image: state.adminForm.images[0].base64,
-        images: state.adminForm.images.map(img => img.base64),
-        createdAt: Date.now()
-      };
-
-      state.products = [newP, ...state.products];
-      localStorage.setItem('raghad_products', JSON.stringify(state.products));
-
-      state.adminForm = { origin: '', images: [] };
-      succ.textContent = 'تم إضافة المنتج بنجاح إلى المعرض!';
-      succ.classList.remove('hidden');
-      err.classList.add('hidden');
-
-      render();
+      try {
+        await apiFetch('/api/admin/products', {
+          method: 'POST',
+          body: JSON.stringify({
+            name,
+            description,
+            price,
+            discountPrice,
+            origin,
+            images: state.adminForm.images.map(img => img.url)
+          })
+        });
+        state.adminForm = { origin: '', images: [] };
+        succ.textContent = 'تم إضافة المنتج بنجاح إلى المعرض!';
+        succ.classList.remove('hidden');
+        err.classList.add('hidden');
+        await loadProducts();
+        render();
+      } catch (error) {
+        err.textContent = error.message;
+        err.classList.remove('hidden');
+        succ.classList.add('hidden');
+      }
     }
 
-    function deleteProduct(id) {
+    async function deleteProduct(id) {
       if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذا المنتج نهائياً من المتجر؟')) {
-        state.products = state.products.filter(p => p.id !== id);
-        localStorage.setItem('raghad_products', JSON.stringify(state.products));
+        await apiFetch(`/api/admin/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        await loadProducts();
         render();
       }
     }
 
-    function deleteOrder(id) {
+    async function deleteOrder(id) {
       if (confirm('هل أنتِ متأكدة من رغبتك في حذف هذا الطلب نهائياً؟')) {
-        state.orders = state.orders.filter(o => o.id !== id);
-        localStorage.setItem('raghad_orders', JSON.stringify(state.orders));
+        await apiFetch(`/api/admin/orders/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        await loadAdminOrders();
         render();
       }
     }
 
-    function changeOrderStatus(orderId, status) {
-      const order = state.orders.find(o => o.id === orderId);
-      if (order) order.status = status;
-      localStorage.setItem('raghad_orders', JSON.stringify(state.orders));
+    async function changeOrderStatus(orderId, status) {
+      await apiFetch(`/api/admin/orders/${encodeURIComponent(orderId)}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status })
+      });
+      await loadAdminOrders();
       render();
     }
 
@@ -929,16 +1032,9 @@
         container.innerHTML = `
           <div class="max-w-md mx-auto my-6 bg-white rounded-3xl border border-purple-100 p-8 shadow-xs text-center text-right" dir="rtl">
             <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4"><i data-lucide="lock" class="w-6 h-6"></i></div>
-            <h2 class="font-bold text-lg text-gray-800 mb-1">تسجيل دخول الإدارة</h2>
-            <p class="text-xs text-gray-400 mb-6 leading-relaxed">لوحة التحكم هذه مخصصة لإدارة المتجر ومتابعة الطلبات المفتوحة.</p>
-            <form onsubmit="handleAdminLoginSubmit(event)" class="space-y-4">
-              <div id="admin-login-error" class="bg-red-50 border border-red-200 text-red-600 text-[10px] p-2 rounded-lg hidden"></div>
-              <div class="space-y-1">
-                <label class="text-[10px] font-bold text-gray-600 block">كلمة المرور السرية</label>
-                <input id="input-admin-password" type="password" required placeholder="أدخل كلمة المرور" class="w-full px-3 py-2 bg-white border border-purple-100 rounded-xl text-center text-xs" />
-              </div>
-              <button type="submit" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold">تسجيل الدخول</button>
-            </form>
+            <h2 class="font-bold text-lg text-gray-800 mb-1">تسجيل الدخول مطلوب</h2>
+            <p class="text-xs text-gray-400 mb-6 leading-relaxed">يرجى تسجيل الدخول من قسم حسابي للمتابعة.</p>
+            <button onclick="updateState({ isAccountModalOpen: true, authMode: 'login' })" class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-semibold">فتح حسابي</button>
           </div>
         `;
         lucide.createIcons();
@@ -1012,7 +1108,7 @@
                         <div class="grid grid-cols-4 gap-1.5 mt-2">
                           ${state.adminForm.images.map((img, idx) => `
                             <div class="relative aspect-square border border-purple-100 rounded-lg overflow-hidden">
-                              <img src="${img.base64}" class="w-full h-full object-cover" />
+                              <img src="${img.url}" class="w-full h-full object-cover" />
                               <button type="button" onclick="removeAdminFormImage(${idx}, event)" class="absolute top-0.5 right-0.5 w-4.5 h-4.5 bg-red-500 text-white rounded-full flex items-center justify-center text-[8px]">✕</button>
                             </div>
                           `).join('')}
@@ -1075,7 +1171,6 @@
                       <h4 class="font-bold text-purple-900 border-b border-purple-100 pb-1">المستلم</h4>
                       <p>الجوال: ${o.customerPhone}</p>
                       <p>العنوان: ${o.customerAddress}</p>
-                      <p class="font-semibold text-purple-700">الشحن عبر: ${o.shippingCompany === 'Bosta' ? 'بوسطة (Bosta)' : o.shippingCompany === 'Aramex' ? 'أرامكس (Aramex)' : o.shippingCompany === 'Mersal' ? 'مرسال (Mersal)' : o.shippingCompany === 'EgyptPost' ? 'البريد المصري' : o.shippingCompany || 'بوسطة'}</p>
                     </div>
                     <div class="md:col-span-2 space-y-2">
                       <h4 class="font-bold text-purple-900 border-b border-purple-100 pb-1">الأدوات المكتبية</h4>
@@ -1099,6 +1194,7 @@
       renderCatalog();
       renderAdminPanel();
       renderUnlockModal();
+      renderAccountModal();
       renderCartSidebar();
       renderProductDetailModal();
 
@@ -1122,39 +1218,12 @@
     }
 
     // --- LIFE CYCLE INITIALIZATION ---
-    window.addEventListener('DOMContentLoaded', () => {
-      // Restore dynamic models
-      const unlocked = localStorage.getItem('raghad_admin_unlocked') === 'true';
-      const params = new URLSearchParams(window.location.search);
-      const queryAdmin = params.get('admin') === 'true' || params.get('raghad_admin') === 'true';
-
-      if (unlocked || queryAdmin) {
-        state.isAdminModeUnlocked = true;
-        state.adminAuthenticated = true;
-        if (queryAdmin) {
-          localStorage.setItem('raghad_admin_unlocked', 'true');
-        }
-      }
-
-      // Clear the products initially to start empty as requested by the user
-      const isWiped = localStorage.getItem('raghad_products_wiped_v3');
-      if (!isWiped) {
-        localStorage.setItem('raghad_products', '[]');
-        localStorage.setItem('raghad_products_wiped_v3', 'true');
-      }
-
-      const prods = localStorage.getItem('raghad_products');
-      state.products = prods ? JSON.parse(prods) : [];
-
-      const ords = localStorage.getItem('raghad_orders');
-      state.orders = ords ? JSON.parse(ords) : [];
-
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadApiConfig();
       const cart = localStorage.getItem('raghad_cart');
       state.cartItems = cart ? JSON.parse(cart) : [];
-
       document.getElementById('footer-year').textContent = new Date().getFullYear();
-
-      render();
+      await refreshStoreData();
     });
   </script>
 </body>
